@@ -1,0 +1,259 @@
+# ============================================================================
+# ADICIONE ESTAS CÉLULAS AO SEU NOTEBOOK APÓS TREINAR O MODELO
+# ============================================================================
+
+# CÉLULA 1: Função de predição para novos pacientes
+def prever_diabetes(modelo, dados_paciente):
+    """
+    Faz predição de diabetes para um novo paciente
+    
+    Parâmetros:
+    - modelo: modelo MLPClassifier treinado (modelo_v7)
+    - dados_paciente: lista com 8 valores [num_preg, glucose_conc, diastolic_bp, 
+                      thickness, insulin, bmi, diab_pred, age]
+    
+    Retorna:
+    - Dicionário com resultado e probabilidades
+    """
+    import numpy as np
+    
+    # Converter para array numpy
+    dados = np.array(dados_paciente).reshape(1, -1)
+    
+    # Fazer predição
+    predicao = modelo.predict(dados)[0]
+    probabilidades = modelo.predict_proba(dados)[0]
+    
+    # Preparar resultado
+    resultado = {
+        'tem_diabetes': bool(predicao),
+        'probabilidade_diabetes': probabilidades[1],
+        'probabilidade_sem_diabetes': probabilidades[0],
+        'classe_prevista': 'DIABETES' if predicao == 1 else 'SEM DIABETES'
+    }
+    
+    return resultado
+
+
+# CÉLULA 2: Função para exibir resultado formatado
+def exibir_resultado_predicao(resultado):
+    """
+    Exibe o resultado da predição de forma visual
+    """
+    print("=" * 70)
+    print("                  RESULTADO DA ANÁLISE DE DIABETES")
+    print("=" * 70)
+    
+    if resultado['tem_diabetes']:
+        print("\n⚠️  RESULTADO: POSITIVO PARA DIABETES")
+        print(f"    Probabilidade: {resultado['probabilidade_diabetes']:.1%}")
+        print("\n⚠️  ATENÇÃO: O modelo indica risco elevado de diabetes.")
+        print("    Recomenda-se consultar um médico para exames específicos.")
+    else:
+        print("\n✅ RESULTADO: NEGATIVO PARA DIABETES")
+        print(f"    Probabilidade de não ter diabetes: {resultado['probabilidade_sem_diabetes']:.1%}")
+        print("\n✅ O modelo indica baixo risco de diabetes.")
+        print("    Continue com hábitos saudáveis e check-ups regulares.")
+    
+    print("\n" + "-" * 70)
+    print("📊 DISTRIBUIÇÃO DE PROBABILIDADES:")
+    print(f"    Sem diabetes: {resultado['probabilidade_sem_diabetes']:.2%}")
+    print(f"    Com diabetes: {resultado['probabilidade_diabetes']:.2%}")
+    print("=" * 70)
+    
+    print("\n📌 IMPORTANTE: Este é um modelo preditivo para fins educacionais.")
+    print("   NÃO substitui diagnóstico médico profissional!")
+    print("=" * 70 + "\n")
+
+
+# CÉLULA 3: Função interativa para coletar dados do usuário
+def coletar_dados_paciente():
+    """
+    Coleta dados do paciente via input interativo
+    """
+    print("\n" + "=" * 70)
+    print("           ENTRADA DE DADOS DO PACIENTE")
+    print("=" * 70 + "\n")
+    
+    perguntas = [
+        ("Número de gestações: ", "num_preg"),
+        ("Concentração de glicose (mg/dL): ", "glucose_conc"),
+        ("Pressão arterial diastólica (mm Hg): ", "diastolic_bp"),
+        ("Espessura da dobra cutânea (mm): ", "thickness"),
+        ("Insulina sérica (mu U/ml): ", "insulin"),
+        ("IMC - Índice de Massa Corporal: ", "bmi"),
+        ("Função de pedigree de diabetes (0-2.5): ", "diab_pred"),
+        ("Idade (anos): ", "age")
+    ]
+    
+    dados = []
+    
+    for pergunta, campo in perguntas:
+        while True:
+            try:
+                valor = float(input(pergunta))
+                dados.append(valor)
+                break
+            except ValueError:
+                print("❌ Por favor, insira um número válido!")
+    
+    print("\n✅ Dados coletados com sucesso!\n")
+    return dados
+
+
+# CÉLULA 4: Sistema completo de predição interativa
+def sistema_predicao_interativo(modelo):
+    """
+    Sistema completo para fazer predições interativas
+    Usa o modelo treinado para analisar novos pacientes
+    """
+    print("\n" + "🏥" * 35)
+    print("       SISTEMA DE PREDIÇÃO DE DIABETES - VERSÃO INTERATIVA")
+    print("🏥" * 35 + "\n")
+    
+    while True:
+        # Coletar dados
+        dados_paciente = coletar_dados_paciente()
+        
+        # Fazer predição
+        resultado = prever_diabetes(modelo, dados_paciente)
+        
+        # Exibir resultado
+        exibir_resultado_predicao(resultado)
+        
+        # Perguntar se deseja continuar
+        continuar = input("\nDeseja analisar outro paciente? (s/n): ")
+        if continuar.lower() != 's':
+            print("\n👋 Encerrando sistema. Obrigado!")
+            break
+        print("\n" + "=" * 70 + "\n")
+
+
+# ============================================================================
+# EXEMPLOS DE USO
+# ============================================================================
+
+# EXEMPLO 1: Predição com dados fornecidos diretamente
+print("\n📋 EXEMPLO 1: Predição com dados fornecidos diretamente")
+print("=" * 70)
+
+# Dados de exemplo (substitua pelos valores reais do paciente)
+exemplo_paciente = [6, 148, 72, 35, 125, 33.6, 0.627, 50]
+
+resultado = prever_diabetes(modelo_v7, exemplo_paciente)
+exibir_resultado_predicao(resultado)
+
+
+# EXEMPLO 2: Múltiplos pacientes de uma vez
+print("\n📋 EXEMPLO 2: Analisando múltiplos pacientes")
+print("=" * 70)
+
+pacientes = [
+    [1, 85, 66, 29, 0, 26.6, 0.351, 31],  # Paciente 1
+    [8, 183, 64, 0, 0, 23.3, 0.672, 32],  # Paciente 2
+    [1, 89, 66, 23, 94, 28.1, 0.167, 21]  # Paciente 3
+]
+
+for i, dados in enumerate(pacientes, 1):
+    print(f"\n{'─' * 70}")
+    print(f"PACIENTE {i}")
+    print(f"{'─' * 70}")
+    resultado = prever_diabetes(modelo_v7, dados)
+    print(f"Dados: {dados}")
+    print(f"Resultado: {resultado['classe_prevista']} "
+          f"(Prob: {resultado['probabilidade_diabetes']:.1%})")
+
+
+# EXEMPLO 3: Sistema interativo (descomente para usar)
+# Descomente a linha abaixo para ativar o modo interativo
+# sistema_predicao_interativo(modelo_v7)
+
+
+# ============================================================================
+# FUNÇÃO BONUS: Criar DataFrame com múltiplas predições
+# ============================================================================
+
+def analisar_multiplos_pacientes(modelo, lista_pacientes):
+    """
+    Analisa múltiplos pacientes e retorna DataFrame com resultados
+    
+    Parâmetros:
+    - modelo: modelo treinado
+    - lista_pacientes: lista de listas com dados dos pacientes
+    
+    Retorna:
+    - DataFrame com resultados
+    """
+    resultados = []
+    
+    for i, dados in enumerate(lista_pacientes, 1):
+        pred = prever_diabetes(modelo, dados)
+        resultados.append({
+            'Paciente': f'Paciente {i}',
+            'Resultado': pred['classe_prevista'],
+            'Prob. Diabetes (%)': f"{pred['probabilidade_diabetes']:.1%}",
+            'Prob. Sem Diabetes (%)': f"{pred['probabilidade_sem_diabetes']:.1%}"
+        })
+    
+    return pd.DataFrame(resultados)
+
+
+# Exemplo de uso da função bonus
+print("\n📊 EXEMPLO BONUS: Análise em batch")
+print("=" * 70)
+
+pacientes_teste = [
+    [2, 100, 70, 30, 100, 28.0, 0.400, 35],
+    [5, 160, 85, 40, 150, 35.0, 0.700, 55],
+    [0, 90, 65, 25, 80, 24.0, 0.300, 25]
+]
+
+df_resultados = analisar_multiplos_pacientes(modelo_v7, pacientes_teste)
+print(df_resultados.to_string(index=False))
+print("=" * 70)
+
+
+# ============================================================================
+# VISUALIZAÇÃO: Gráfico de probabilidades
+# ============================================================================
+
+def plotar_probabilidades(modelo, dados_paciente, titulo="Análise de Probabilidades"):
+    """
+    Plota gráfico de barras com as probabilidades
+    """
+    resultado = prever_diabetes(modelo, dados_paciente)
+    
+    categorias = ['Sem Diabetes', 'Com Diabetes']
+    probabilidades = [
+        resultado['probabilidade_sem_diabetes'],
+        resultado['probabilidade_diabetes']
+    ]
+    cores = ['green', 'red']
+    
+    plt.figure(figsize=(8, 5))
+    barras = plt.bar(categorias, probabilidades, color=cores, alpha=0.7, edgecolor='black')
+    
+    # Adicionar valores nas barras
+    for barra, prob in zip(barras, probabilidades):
+        altura = barra.get_height()
+        plt.text(barra.get_x() + barra.get_width()/2., altura,
+                f'{prob:.1%}',
+                ha='center', va='bottom', fontsize=14, fontweight='bold')
+    
+    plt.ylim(0, 1.1)
+    plt.ylabel('Probabilidade', fontsize=12, fontweight='bold')
+    plt.title(titulo, fontsize=14, fontweight='bold')
+    plt.grid(axis='y', alpha=0.3)
+    
+    # Adicionar linha de decisão em 50%
+    plt.axhline(y=0.5, color='gray', linestyle='--', linewidth=2, alpha=0.5, label='Limiar de decisão')
+    plt.legend()
+    
+    plt.tight_layout()
+    plt.show()
+
+
+# Exemplo de visualização
+print("\n📈 Gerando visualização das probabilidades...")
+exemplo_vis = [6, 148, 72, 35, 125, 33.6, 0.627, 50]
+plotar_probabilidades(modelo_v7, exemplo_vis, "Predição de Diabetes - Paciente Exemplo")
